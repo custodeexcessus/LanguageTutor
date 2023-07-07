@@ -143,7 +143,7 @@ def voices_by_features() -> Dict[str, Dict[str, List[str]]]:
 
     :return: Dict: {lang: {gender: [list of voices]}}
     """
-    voices_dict = dict()
+    voices_dict = {}
     voices = t2s_client.list_voices().voices
 
     for voice in voices:
@@ -153,11 +153,11 @@ def voices_by_features() -> Dict[str, Dict[str, List[str]]]:
 
         for language_code in language_codes:
             if language_code not in voices_dict:
-                voices_dict[language_code] = dict()
+                voices_dict[language_code] = {}
 
             lang_dict = voices_dict[language_code]
             if gender not in lang_dict:
-                lang_dict[gender] = list()
+                lang_dict[gender] = []
 
             lang_dict[gender].append(name)
 
