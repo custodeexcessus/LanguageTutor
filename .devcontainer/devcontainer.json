@@ -1,6 +1,6 @@
 {
     "name": "LanguageTutor",
-    "image": "python:3.11",
+    "image": "python:3.8.10",
     "postCreateCommand": "curl https://sdk.cloud.google.com | bash && python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt",
     "runArgs": [ "-v", "/home/codespace/.config:/root/.config" ],
     "customizations": {
