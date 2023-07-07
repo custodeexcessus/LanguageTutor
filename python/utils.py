@@ -19,24 +19,20 @@ def split_to_sentences(text: str) -> List[str]:
 
     :param text: the text to split
     """
-    characters = [c+' ' for c in ['.', '!', "?", ":", ";"]]
+    characters = [f'{c} ' for c in ['.', '!', "?", ":", ";"]]
     escaped_characters = [re.escape(c) for c in characters]
-    if any([c in text for c in characters]):
+    if any(c in text for c in characters):
         pattern = '|'.join(escaped_characters)
-        split_list = re.split(pattern, text)
+        return re.split(pattern, text)
     elif '\n' in text:
         lst = text.split('\n')
         lst = [s for s in lst if len(s.strip()) > 0]
-        if len(lst) > 1:
-            split_list = [lst[0], "\n".join(lst[1:])]
-        else:
-            split_list = lst
+        return [lst[0], "\n".join(lst[1:])] if len(lst) > 1 else lst
     elif ', ' in text and len(text) > 100:
         lst = re.split(re.escape(',') + r'\s', text)
-        split_list = [lst[0], ", ".join(lst[1:])]
+        return [lst[0], ", ".join(lst[1:])]
     else:
-        split_list = [text]
-    return split_list
+        return [text]
 
 
 def bot_text_to_speech(text: str, message_index: int, counter: int) -> str:
@@ -72,12 +68,11 @@ def get_gcs_credentials(config: Config) -> Credentials:
     :param config: Config
     :return: Credentials
     """
-    sa = config.get("google_sa", None)
-    if sa:
-        credentials = Credentials.from_service_account_info(sa)
-    else:
-        credentials = None
-    return credentials
+    return (
+        Credentials.from_service_account_info(sa)
+        if (sa := config.get("google_sa", None))
+        else None
+    )
 
 
 def get_error_message_from_exception(e: Exception) -> str:

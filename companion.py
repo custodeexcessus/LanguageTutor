@@ -23,7 +23,7 @@ config: Optional[Config] = None
 memory: Optional[Memory] = None
 chatbot: Optional[Chatbot] = None
 app_cache = AppCache()
-voices_by_features = dict()
+voices_by_features = {}
 
 @app.route('/')
 def home():
@@ -63,44 +63,42 @@ def setup():
     """
     Web page, setup page
     """
-    if request.method == 'POST':
-        filename = request.form.get('filename')
-        data = {
-            "model": {
-                "name": request.form.get('model-name'),
-                "temperature": float(request.form.get('temperature'))
-            },
-            "user": {
-                "name": request.form.get('user-name'),
-                "image": request.form.get('profile-img-url'),
-                "gender": request.form.get('gender')
-            },
-            "bot": {
-                "name": request.form.get('tutor').split("-")[0],
-                "image": f"/static/bots_profile/{request.form.get('tutor').split('-')[0].lower()}.png",
-                "gender": request.form.get('tutor').split("-")[1].lower(),
-                "voice": request.form.get('voices-dropdown')
-            },
-            "language": {
-                "native": request.form.get('user-lang-dropdown').lower(),
-                "learning": request.form.get('tutor-lang-dropdown').split("-")[0].lower(),
-                "level": request.form.get('lang-level')
-            },
-            "behavior": {
-                "auto_send_recording": bool(request.form.get('auto-send-switch'))
-            }
-        }
-        with open(os.path.join(os.getcwd(), filename), 'w') as outfile:
-            yaml.dump(data, outfile, allow_unicode=True)
-        return jsonify({'status': 'success'})
-
-    else:
+    if request.method != 'POST':
         return render_template('setup.html', males=MALE_TUTORS, females=FEMALE_TUTORS,
                                input_languages_codes_and_names=[[language.language_name_to_iso6391(lang), lang]
                                                                 for lang in INPUT_LANGUAGES],
                                output_languages_locales_and_names=[[k, language.locale_code_to_language(k, name_in_same_language=True)]
                                                                    for k in voices_by_features.keys()]
                                )
+    filename = request.form.get('filename')
+    data = {
+        "model": {
+            "name": request.form.get('model-name'),
+            "temperature": float(request.form.get('temperature'))
+        },
+        "user": {
+            "name": request.form.get('user-name'),
+            "image": request.form.get('profile-img-url'),
+            "gender": request.form.get('gender')
+        },
+        "bot": {
+            "name": request.form.get('tutor').split("-")[0],
+            "image": f"/static/bots_profile/{request.form.get('tutor').split('-')[0].lower()}.png",
+            "gender": request.form.get('tutor').split("-")[1].lower(),
+            "voice": request.form.get('voices-dropdown')
+        },
+        "language": {
+            "native": request.form.get('user-lang-dropdown').lower(),
+            "learning": request.form.get('tutor-lang-dropdown').split("-")[0].lower(),
+            "level": request.form.get('lang-level')
+        },
+        "behavior": {
+            "auto_send_recording": bool(request.form.get('auto-send-switch'))
+        }
+    }
+    with open(os.path.join(os.getcwd(), filename), 'w') as outfile:
+        yaml.dump(data, outfile, allow_unicode=True)
+    return jsonify({'status': 'success'})
 
 
 @app.route('/get_language_voices', methods=['POST'])
@@ -140,7 +138,7 @@ def get_response():
         app_cache.message_generator = chatbot.get_response(is_initial_message)
         app_cache.last_sentence = ''
         app_cache.sentences_counter = 0
-        app_cache.bot_recordings = list()
+        app_cache.bot_recordings = []
         first_message = next(app_cache.message_generator)
         app_cache.generated_message = first_message
     except Exception as e:
@@ -269,8 +267,7 @@ def play_user_message():
     Play user recording if exists
     """
     message_id = int(request.form['message_id'].split('_')[1])
-    user_recording = memory[message_id]['user_recording']
-    if user_recording:
+    if user_recording := memory[message_id]['user_recording']:
         app_cache.play_recordings_queue.put(user_recording)
     return jsonify({'message': 'User message played successfully'})
 
@@ -308,10 +305,10 @@ def save_session():
     """
     Save current session as file
     """
-    data = list()
-    for m in memory.get_chat_history()[1:]:
-        data.append({"role": m["role"], "content": m["content"]})
-
+    data = [
+        {"role": m["role"], "content": m["content"]}
+        for m in memory.get_chat_history()[1:]
+    ]
     json_data = json.dumps(data, indent=4)  # Convert the list of dictionaries to JSON format
 
     with open(SAVED_SESSION_FILE, "w") as f:

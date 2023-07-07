@@ -7,8 +7,8 @@ class Memory:
     This class is used to remember all messages sent and received, along with metadata such as recording files, etc.
     """
     def __init__(self):
-        self._memory: List[dict] = list()
-        self._updates: List[dict] = list()
+        self._memory: List[dict] = []
+        self._updates: List[dict] = []
 
     def __getitem__(self, index):
         return self._memory[index]
@@ -33,13 +33,18 @@ class Memory:
         :param user_recording: a file name of the user's recording
         """
         message = re.sub(r'[^\S\n]+', ' ', message)
-        mem = {"role": role, "content": message, "recording": recording or list(), "user_recording": user_recording}
+        mem = {
+            "role": role,
+            "content": message,
+            "recording": recording or [],
+            "user_recording": user_recording,
+        }
         updates = [u.copy() for u in self._updates]
         updates = [u for u in updates if u["index"] == len(self._memory)]
         [u.pop("index") for u in updates]
         for u in updates:
             u["recording"] = u["recording"] or []
-            mem.update(u)
+            mem |= u
         self._memory.append(mem)
 
     def update(self, index, **kwargs) -> None:

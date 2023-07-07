@@ -3,6 +3,8 @@ from threading import Thread, Event
 from typing import Generator, List, Optional
 
 
+
+
 class AppCache:
     """
     Used to save data which needs to transfer between different threads and endpoints
@@ -10,8 +12,8 @@ class AppCache:
     message_generator: Optional[Generator] = None
     language: Optional[str] = None
     user_recording: Optional[str] = None
-    bot_recordings: List[str] = list()
-    server_errors: List[str] = list()
+    bot_recordings: List[str] = []
+    server_errors: List[str] = []
     sentences_counter: int = 0
     generated_message: str = ''
     last_sentence: str = ''
